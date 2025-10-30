@@ -1,24 +1,29 @@
-# README
+# Socialize Project Deployment
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Deployment for Socialize backend (Rails API) and frontend (React) using Kamal 2.
 
-Things you may want to cover:
+## Usage
 
-* Ruby version
+- Configure secrets in `.kamal/secrets-common` (copy from `.kamal/secrets-common.example`).  
+- Use the deploy script for everything:
 
-* System dependencies
+```bash
+./deploy.sh setup            # First-time backend
+./deploy.sh setup-frontend   # First-time frontend
+./deploy.sh deploy           # Backend only
+./deploy.sh deploy-frontend  # Frontend only
+./deploy.sh deploy-all       # Both services
+./deploy.sh status           # Check status
+```
 
-* Configuration
+See deploy.sh for more commands, like running migrations, database reset, logs, etc.
 
-* Database creation
+## Access
+- Backend API: https://socializeproject.com/api/v1<br>
+    Currently using v1; future versions (v2, v3, etc.) may be added as the API evolves
+- Frontend: https://socializeproject.com
 
-* Database initialization
+## Notes
+Do not commit .kamal/secrets-common.
 
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+Frontend and backend are submodules; no need to track them manually.
