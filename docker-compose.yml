@@ -1,0 +1,100 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.backend
+    container_name: socialize_backend
+    command: sh -c "rm -f /app/tmp/pids/server.pid && bundle exec rails server -b 0.0.0.0 -p 3000"
+    ports:
+      - "3000:3000"
+    environment:
+      RAILS_ENV: development
+      DB_HOST: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: socialize_project_development
+      REDIS_URL: redis://redis:6379/1
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./backend:/app:cached
+      - rails_bundle_cache:/usr/local/bundle
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+      target: development
+    container_name: socialize_frontend
+    ports:
+      - "5173:5173"   # frontend served on http://localhost:5173
+    environment:
+      NODE_ENV: development
+      REACT_APP_API_URL: http://localhost:3000/api/v1
+      # Use Vite environment variable instead of React
+      VITE_API_URL: http://localhost:3000/api/v1
+      # Enable hot reload for better development experience
+      VITE_HMR_HOST: localhost
+      VITE_HMR_PORT: 5173
+      # Enable polling for file watching (helpful on Windows/macOS)
+      CHOKIDAR_USEPOLLING: true
+    volumes:
+      - ./frontend:/app:cached
+      # Use anonymous volume instead of named volume
+      - frontend_node_modules:/app/node_modules
+      # Exclude build artifacts
+      - /app/dist
+      - /app/.vite
+      - /app/node_modules/.cache
+    depends_on:
+      - backend
+
+  postgres:
+    image: postgres:15
+    container_name: socialize_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: socialize_project_development
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: socialize_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+
+  sidekiq:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.backend
+    container_name: socialize_sidekiq
+    command: bundle exec sidekiq
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      RAILS_ENV: development
+      DB_HOST: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: socialize_project_development
+      REDIS_URL: redis://redis:6379/1
+    volumes:
+      - ./backend:/app:cached
+      - rails_bundle_cache:/usr/local/bundle
+  
+
+volumes:
+  frontend_node_modules:
+  pgdata:
+  redisdata:
+  rails_bundle_cache:

@@ -1,0 +1,50 @@
+# Frontend React Configuration
+service: socialize-frontend
+image: tadasmak/socialize_project_frontend
+
+# Your VPS server(s)
+servers:
+  web:
+    hosts:
+      - 91.98.71.82
+
+# Docker registry configuration
+registry:
+  username: tadasmak
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+# Builder configuration - using root Dockerfile
+builder:
+  arch: amd64
+  dockerfile: frontend/Dockerfile.frontend
+  context: .
+  args:
+    CONTEXT_PATH: frontend
+
+# Proxy configuration - different port to avoid conflicts
+proxy:
+  ssl:
+    certificate_pem: CERTIFICATE_PEM
+    private_key_pem: PRIVATE_KEY_PEM
+  app_port: 80
+  hosts: 
+    - socializeproject.com
+    - www.socializeproject.com
+  healthcheck:
+    path: /health
+    interval: 5
+    timeout: 10
+
+deploy_timeout: 60
+readiness_delay: 15
+
+# Environment variables for React app
+env:
+  clear:
+    NODE_ENV: production
+    REACT_APP_API_URL: https://socializeproject.com/api/v1
+
+# SSH configuration
+ssh:
+  user: root

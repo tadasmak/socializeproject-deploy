@@ -1,0 +1,4 @@
+.env
+.kamal/secrets-common
+frontend/
+backend/
